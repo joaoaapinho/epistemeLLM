@@ -1,0 +1,52 @@
+{
+  "device": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "total_vram_gb": 8.22018048,
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "weights_gb": 2.064990208,
+  "max_new_tokens": 400,
+  "sweep": [
+    {
+      "batch_size": 32,
+      "median_sec": 18.64486069199984,
+      "tokens_per_sec": 686.5162583645498,
+      "gens_per_sec": 1.7162906459113745,
+      "peak_vram_gb": 3.137642496,
+      "ok": true
+    },
+    {
+      "batch_size": 48,
+      "median_sec": 24.533224752000024,
+      "tokens_per_sec": 782.6121593915108,
+      "gens_per_sec": 1.956530398478777,
+      "peak_vram_gb": 3.66953472,
+      "ok": true
+    },
+    {
+      "batch_size": 64,
+      "median_sec": 27.819330977999925,
+      "tokens_per_sec": 920.2234237856038,
+      "gens_per_sec": 2.3005585594640094,
+      "peak_vram_gb": 4.19960832,
+      "ok": true
+    },
+    {
+      "batch_size": 96,
+      "median_sec": 41.672545791000175,
+      "tokens_per_sec": 921.4699815218169,
+      "gens_per_sec": 2.3036749538045425,
+      "peak_vram_gb": 5.260298752,
+      "ok": true
+    }
+  ],
+  "best": {
+    "batch_size": 96,
+    "median_sec": 41.672545791000175,
+    "tokens_per_sec": 921.4699815218169,
+    "gens_per_sec": 2.3036749538045425,
+    "peak_vram_gb": 5.260298752,
+    "ok": true
+  },
+  "n_generations_full_eval": 1600,
+  "projected_minutes": 11.575707164166714,
+  "gate_passed": true
+}

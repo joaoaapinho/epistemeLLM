@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Model weights and caches
+checkpoints/
+*.safetensors
+*.bin
+hf_cache/
+
+# Large or regenerable data
+data/raw/
+
+# Logs
+logs/*.log
