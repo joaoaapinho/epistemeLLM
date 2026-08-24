@@ -1,0 +1,90 @@
+{
+  "overall": {
+    "n": 500,
+    "right": 313,
+    "wrong": 129,
+    "no_answer": 58
+  },
+  "by_source": {
+    "gsm8k": {
+      "n": 250,
+      "right": 192,
+      "wrong": 49,
+      "no_answer": 9
+    },
+    "mmlu": {
+      "n": 250,
+      "right": 121,
+      "wrong": 80,
+      "no_answer": 49
+    }
+  },
+  "by_subject": {
+    "abstract_algebra": {
+      "n": 25,
+      "right": 11,
+      "wrong": 7,
+      "no_answer": 7
+    },
+    "college_mathematics": {
+      "n": 25,
+      "right": 14,
+      "wrong": 9,
+      "no_answer": 2
+    },
+    "college_physics": {
+      "n": 25,
+      "right": 14,
+      "wrong": 5,
+      "no_answer": 6
+    },
+    "econometrics": {
+      "n": 25,
+      "right": 10,
+      "wrong": 12,
+      "no_answer": 3
+    },
+    "formal_logic": {
+      "n": 25,
+      "right": 10,
+      "wrong": 10,
+      "no_answer": 5
+    },
+    "grade_school_math": {
+      "n": 250,
+      "right": 192,
+      "wrong": 49,
+      "no_answer": 9
+    },
+    "high_school_statistics": {
+      "n": 25,
+      "right": 17,
+      "wrong": 6,
+      "no_answer": 2
+    },
+    "machine_learning": {
+      "n": 25,
+      "right": 11,
+      "wrong": 9,
+      "no_answer": 5
+    },
+    "moral_scenarios": {
+      "n": 25,
+      "right": 4,
+      "wrong": 6,
+      "no_answer": 15
+    },
+    "professional_law": {
+      "n": 25,
+      "right": 11,
+      "wrong": 11,
+      "no_answer": 3
+    },
+    "professional_medicine": {
+      "n": 25,
+      "right": 19,
+      "wrong": 5,
+      "no_answer": 1
+    }
+  }
+}

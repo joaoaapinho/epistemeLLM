@@ -1,0 +1,10 @@
+{
+  "name": "smoke_test",
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "adapter": null,
+  "seed": 42,
+  "items": 20,
+  "rows": 60,
+  "minutes": 4.0,
+  "peak_vram_gb": 4.44
+}

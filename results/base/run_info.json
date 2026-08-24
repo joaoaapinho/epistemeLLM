@@ -1,0 +1,10 @@
+{
+  "name": "base",
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "adapter": null,
+  "seed": 42,
+  "items": 500,
+  "rows": 1500,
+  "minutes": 108.4,
+  "peak_vram_gb": 6.62
+}
