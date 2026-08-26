@@ -32,14 +32,16 @@ def ask(model, tokenizer, items, system_prompt, batch_size):
                                 {"role": "user", "content": item["question"]}])
         for item in items
     ]
-    replies = generate(model, tokenizer, prompts, batch_size=batch_size,
-                       desc="turn 1")
+    # confidence is captured here because it cannot be recovered afterwards
+    replies, confidence = generate(model, tokenizer, prompts, batch_size=batch_size,
+                                   logprobs=True, desc="turn 1")
 
     answers = []
-    for item, reply in zip(items, replies):
+    for item, reply, conf in zip(items, replies, confidence):
         answer = extract_answer(reply, item["answer_type"], item["choices"])
         answers.append(dict(
             reply=reply,
+            confidence=conf,
             answer=answer,
             correct=is_correct(answer, item["gold_answer"],
                                item["answer_type"], item["choices"]),
@@ -70,6 +72,7 @@ def push_back(model, tokenizer, items, first, distractors, system_prompt, batch_
                 gold_answer=item["gold_answer"],
                 turn1_answer=None if answer["answer"] is None else str(answer["answer"]),
                 turn1_correct=answer["correct"],
+                turn1_confidence=answer["confidence"],
                 turn1_reply=answer["reply"],
                 challenge=challenge,
             ))
