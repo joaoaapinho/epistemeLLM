@@ -83,21 +83,34 @@ def split(pool, n_eval, n_train, rng):
 
 # Return (eval_items, train_items) - same seed and split
 def build_splits(seed=config.SEED):
+    """Return (eval_items, train_items). Same seed, same split, every time."""
     rng = random.Random(seed)
 
     eval_items, train_items = split(
         load_gsm8k(), config.N_EVAL["gsm8k"], config.N_TRAIN["gsm8k"], rng)
 
-    # Split MMLU per subject so both sets cover all ten, rather than letting
-    # the shuffle hand one set all the law questions
+    # MMLU: an even slice per subject for eval, so every subject is represented
+    # in the test set the same way. Training takes an even slice too, then tops
+    # up from whichever subjects have items to spare -- the small subjects run
+    # out long before the big ones, and the eval slice must not move.
     by_subject = load_mmlu()
     per_eval = config.N_EVAL["mmlu"] // len(config.MMLU_SUBJECTS)
     per_train = config.N_TRAIN["mmlu"] // len(config.MMLU_SUBJECTS)
+
+    leftovers = []
     for subject in config.MMLU_SUBJECTS:
-        subject_eval, subject_train = split(
-            by_subject[subject], per_eval, per_train, rng)
+        pool = by_subject[subject]
+        take_train = min(per_train, len(pool) - per_eval)
+        subject_eval, subject_train = split(pool, per_eval, take_train, rng)
         eval_items += subject_eval
         train_items += subject_train
+        leftovers += [i for i in pool
+                      if i["id"] not in {x["id"] for x in subject_eval + subject_train}]
+
+    short_by = config.N_TRAIN["mmlu"] - sum(1 for i in train_items if i["source"] == "mmlu")
+    if short_by > 0:
+        rng.shuffle(leftovers)
+        train_items += leftovers[:short_by]
 
     eval_ids = {item["id"] for item in eval_items}
     train_ids = {item["id"] for item in train_items}

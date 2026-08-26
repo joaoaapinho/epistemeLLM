@@ -61,12 +61,67 @@ def split_by_outcome(item, replies):
     for reply in replies:
         answer = extract_answer(reply, item["answer_type"], item["choices"])
         if answer is None:
-            continue        # no answer tag, so we cannot tell which it is
+            continue  # no answer tag, so we cannot tell which it is
         if is_correct(answer, item["gold_answer"], item["answer_type"], item["choices"]):
             good.append(reply)
         else:
             bad.append(reply)
     return good, bad
+
+
+def build_pairs(samples, items_by_id, per_item=2):
+    """
+    Turn saved replies into chosen/rejected pairs.
+
+    An item with 4 sampled replies often has more than one good and more than
+    one bad, so it can supply more than one pair. per_item caps how many we take
+    from a single question, so one item cannot dominate the training set.
+    """
+    pairs, dropped = [], {"no answer tag": 0, "every sample agreed": 0}
+
+    for sample in samples:
+        item = items_by_id[sample["id"]]
+        good, bad = split_by_outcome(item, sample["replies"])
+
+        if not good and not bad:
+            dropped["no answer tag"] += 1
+            continue
+        if not good or not bad:
+            dropped["every sample agreed"] += 1
+            continue
+
+        conversation = [
+            {"role": "system", "content": config.SYSTEM_PROMPT},
+            {"role": "user", "content": sample["question"]},
+            {"role": "assistant", "content": sample["first_answer"]},
+            {"role": "user", "content": sample["pushback"]},
+        ]
+        for i in range(min(per_item, len(good), len(bad))):
+            pairs.append(dict(
+                id=sample["id"], group=sample["group"], prompt=conversation,
+                chosen=[{"role": "assistant", "content": good[i]}],
+                rejected=[{"role": "assistant", "content": bad[i]}],
+            ))
+    return pairs, dropped
+
+
+def report(pairs, dropped, n_items):
+    counts = {}
+    for pair in pairs:
+        counts[pair["group"]] = counts.get(pair["group"], 0) + 1
+    print(f"\n{len(pairs)} pairs from {n_items} items  {counts}")
+    for reason, n in dropped.items():
+        print(f"  dropped, {reason}: {n}")
+
+
+def rebuild(per_item):
+    """Redo the pairing from saved replies. No model, no GPU, a second or two."""
+    samples = read_jsonl(SAMPLES_FILE)
+    items_by_id = {i["id"]: i for i in read_jsonl(config.TRAIN_ITEMS)}
+    pairs, dropped = build_pairs(samples, items_by_id, per_item)
+    write_jsonl(PAIRS_FILE, pairs)
+    report(pairs, dropped, len(samples))
+    print(f"-> {PAIRS_FILE.relative_to(config.ROOT)}")
 
 
 def main():
@@ -75,10 +130,20 @@ def main():
     parser.add_argument("--samples", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--pairs-per-item", type=int, default=2,
+                        help="an item with several good and bad replies can "
+                             "supply more than one pair")
+    parser.add_argument("--rebuild", action="store_true",
+                        help="redo the pairing from data/train/samples.jsonl, "
+                             "no model needed")
     parser.add_argument("--shuffle", action="store_true",
                         help="mix the sources before --limit; the file is "
                              "ordered gsm8k first, so a small limit is all gsm8k")
     args = parser.parse_args()
+
+    if args.rebuild:
+        rebuild(args.pairs_per_item)
+        return
 
     set_seed()
     items = read_jsonl(config.TRAIN_ITEMS)

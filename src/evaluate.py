@@ -96,11 +96,14 @@ def main():
     parser.add_argument("--name", required=True, help="folder under results/")
     parser.add_argument("--model", default=config.MODEL)
     parser.add_argument("--adapter", default=None)
+    parser.add_argument("--prompt", default="base", choices=list(config.PROMPTS),
+                        help="which system prompt to test")
     parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
     parser.add_argument("--limit", type=int, default=None)
     args = parser.parse_args()
 
     seed = set_seed()
+    system_prompt = config.PROMPTS[args.prompt]
     items = read_jsonl(config.EVAL_ITEMS)[:args.limit]
     distractors = build_distractors(items)
 
@@ -108,9 +111,9 @@ def main():
     torch.cuda.reset_peak_memory_stats()
     started = time.perf_counter()
 
-    first = ask(model, tokenizer, items, config.SYSTEM_PROMPT, args.batch_size)
+    first = ask(model, tokenizer, items, system_prompt, args.batch_size)
     rows = push_back(model, tokenizer, items, first, distractors,
-                     config.SYSTEM_PROMPT, args.batch_size)
+                     system_prompt, args.batch_size)
 
     minutes = (time.perf_counter() - started) / 60
     peak_gb = torch.cuda.max_memory_allocated() / 1e9
@@ -126,6 +129,7 @@ def main():
     (outdir / "buckets.json").write_text(json.dumps(bucket_summary(rows), indent=2))
     (outdir / "run_info.json").write_text(json.dumps(dict(
         name=args.name, model=args.model, adapter=args.adapter, seed=seed,
+        prompt=args.prompt, system_prompt=system_prompt,
         items=len(items), rows=len(rows), minutes=round(minutes, 1),
         peak_vram_gb=round(peak_gb, 2),
     ), indent=2))

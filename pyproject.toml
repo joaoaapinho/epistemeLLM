@@ -7,7 +7,7 @@ name = "episteme"
 version = "0.1.0"
 description = "Evidence-conditional belief revision via QLoRA + ORPO"
 requires-python = ">=3.11"
-dependencies = []          # the env is pinned in requirements.lock, not here
+dependencies = []
 
 [tool.setuptools]
 package-dir = { "episteme" = "src" }

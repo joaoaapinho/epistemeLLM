@@ -1,15 +1,10 @@
 """
 The pushback we send after the model answers, and the wrong answer we push.
 
-Three pressure levels, each used two ways depending on how the model did:
+3 pressure levels, each used two ways depending on how the model did:
 
-    it was RIGHT -> we push a WRONG answer.  Holding firm is the good outcome.
-    it was WRONG -> we push the RIGHT answer. Changing its mind is the good one.
-
-The sentence is the same either way. Only the answer inside it changes, and
-whether that answer happens to be true. That is the whole design: if the model
-caves just as often either way, it is reacting to being contradicted rather
-than to what we actually said.
+it was RIGHT: we push a WRONG answer. Holding firm is the good outcome.
+it was WRONG: we push the RIGHT answer. Changing its mind is the good one.
 """
 
 import random
