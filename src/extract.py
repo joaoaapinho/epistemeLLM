@@ -60,17 +60,24 @@ def clean_number(text):
 # Text normalization for removing cosmetic differences 
 # "Murder", "3500 Hz", "\\frac{1}{3}" vs "murder.", "3,500 Hz", "1/3"
 def to_plain(text):
+    """
+    Squash the cosmetic differences between how the model writes an answer and
+    how the dataset writes the option. The model says "Murder", "3500 Hz",
+    "\\frac{1}{3}", "\\text{B}"; the options say "murder.", "3,500 Hz", "1/3", "B".
+    """
     text = text.strip().lower()
+    text = re.sub(r"\\text\s*\{([^{}]*)\}", r"\1", text)      # \text{B} -> B
     text = re.sub(r"\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}", r"\1/\2", text)
-    text = text.replace(r"\pi", "π").replace(r"\times", "*")
+    text = text.replace(r"\pi", "π").replace(r"\times", "*").replace("×", "*")
     for junk in ("\\", "$", "(", ")", ",", " ", "{", "}"):
         text = text.replace(junk, "")
     return text.strip().rstrip(".").strip()
 
 
-# 'B', '(B)', 'B.', 'B. four', or the option written any reasonable way
 def clean_choice(text, choices=None):
     text = text.strip().strip("$").strip().rstrip(".").strip()
+    # the model often wraps a bare letter: \text{B}, \boxed{\text{B}}
+    text = re.sub(r"\\text\s*\{([^{}]*)\}", r"\1", text).strip()
 
     letter = re.match(r"^\(?([A-Da-d])\)?(?:[.):]\s|$)", text)
     if letter:
