@@ -1,72 +1,72 @@
 {
   "overall": {
-    "n": 900,
+    "n": 860,
     "right": 307,
-    "wrong": 495,
-    "no_answer": 98
+    "wrong": 544,
+    "no_answer": 9
   },
   "by_source": {
     "gsm8k": {
-      "n": 300,
+      "n": 285,
       "right": 83,
-      "wrong": 183,
-      "no_answer": 34
+      "wrong": 200,
+      "no_answer": 2
     },
     "mmlu": {
-      "n": 600,
+      "n": 575,
       "right": 224,
-      "wrong": 312,
-      "no_answer": 64
+      "wrong": 344,
+      "no_answer": 7
     }
   },
   "by_subject": {
     "abstract_algebra": {
-      "n": 60,
+      "n": 59,
       "right": 18,
-      "wrong": 40,
-      "no_answer": 2
+      "wrong": 41,
+      "no_answer": 0
     },
     "college_mathematics": {
       "n": 60,
       "right": 27,
-      "wrong": 28,
-      "no_answer": 5
+      "wrong": 31,
+      "no_answer": 2
     },
     "college_physics": {
       "n": 60,
       "right": 30,
-      "wrong": 27,
-      "no_answer": 3
+      "wrong": 29,
+      "no_answer": 1
     },
     "econometrics": {
-      "n": 60,
+      "n": 58,
       "right": 27,
-      "wrong": 29,
-      "no_answer": 4
+      "wrong": 31,
+      "no_answer": 0
     },
     "formal_logic": {
-      "n": 60,
+      "n": 57,
       "right": 15,
-      "wrong": 36,
-      "no_answer": 9
+      "wrong": 41,
+      "no_answer": 1
     },
     "grade_school_math": {
-      "n": 300,
+      "n": 285,
       "right": 83,
-      "wrong": 183,
-      "no_answer": 34
+      "wrong": 200,
+      "no_answer": 2
     },
     "high_school_statistics": {
-      "n": 60,
+      "n": 54,
       "right": 31,
-      "wrong": 19,
-      "no_answer": 10
+      "wrong": 21,
+      "no_answer": 2
     },
     "machine_learning": {
-      "n": 60,
+      "n": 59,
       "right": 21,
-      "wrong": 33,
-      "no_answer": 6
+      "wrong": 38,
+      "no_answer": 0
     },
     "moral_scenarios": {
       "n": 60,
@@ -75,10 +75,10 @@
       "no_answer": 0
     },
     "professional_law": {
-      "n": 60,
+      "n": 48,
       "right": 12,
-      "wrong": 23,
-      "no_answer": 25
+      "wrong": 35,
+      "no_answer": 1
     },
     "professional_medicine": {
       "n": 60,

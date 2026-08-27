@@ -1,84 +1,84 @@
 {
   "overall": {
-    "n": 900,
+    "n": 862,
     "right": 494,
-    "wrong": 302,
-    "no_answer": 104
+    "wrong": 346,
+    "no_answer": 22
   },
   "by_source": {
     "gsm8k": {
-      "n": 300,
+      "n": 294,
       "right": 241,
-      "wrong": 52,
-      "no_answer": 7
+      "wrong": 53,
+      "no_answer": 0
     },
     "mmlu": {
-      "n": 600,
+      "n": 568,
       "right": 253,
-      "wrong": 250,
-      "no_answer": 97
+      "wrong": 293,
+      "no_answer": 22
     }
   },
   "by_subject": {
     "abstract_algebra": {
-      "n": 60,
+      "n": 54,
       "right": 20,
-      "wrong": 23,
-      "no_answer": 17
+      "wrong": 30,
+      "no_answer": 4
     },
     "college_mathematics": {
       "n": 60,
       "right": 26,
-      "wrong": 26,
-      "no_answer": 8
+      "wrong": 27,
+      "no_answer": 7
     },
     "college_physics": {
-      "n": 60,
+      "n": 58,
       "right": 30,
-      "wrong": 22,
-      "no_answer": 8
+      "wrong": 24,
+      "no_answer": 4
     },
     "econometrics": {
-      "n": 60,
+      "n": 59,
       "right": 23,
-      "wrong": 30,
-      "no_answer": 7
+      "wrong": 34,
+      "no_answer": 2
     },
     "formal_logic": {
-      "n": 60,
+      "n": 59,
       "right": 25,
-      "wrong": 30,
-      "no_answer": 5
+      "wrong": 32,
+      "no_answer": 2
     },
     "grade_school_math": {
-      "n": 300,
+      "n": 294,
       "right": 241,
-      "wrong": 52,
-      "no_answer": 7
+      "wrong": 53,
+      "no_answer": 0
     },
     "high_school_statistics": {
-      "n": 60,
+      "n": 58,
       "right": 36,
-      "wrong": 19,
-      "no_answer": 5
+      "wrong": 21,
+      "no_answer": 1
     },
     "machine_learning": {
-      "n": 60,
+      "n": 56,
       "right": 28,
-      "wrong": 24,
-      "no_answer": 8
+      "wrong": 27,
+      "no_answer": 1
     },
     "moral_scenarios": {
-      "n": 60,
+      "n": 49,
       "right": 11,
-      "wrong": 17,
-      "no_answer": 32
+      "wrong": 38,
+      "no_answer": 0
     },
     "professional_law": {
-      "n": 60,
+      "n": 55,
       "right": 20,
-      "wrong": 33,
-      "no_answer": 7
+      "wrong": 34,
+      "no_answer": 1
     },
     "professional_medicine": {
       "n": 60,
