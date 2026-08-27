@@ -64,7 +64,14 @@ def main():
     parser.add_argument("--hold-firm-percent", type=int, default=50)
     parser.add_argument("--total", type=int, default=None,
                         help="pairs to train on; keep this the same across runs")
-    parser.add_argument("--epochs", type=float, default=1.0)
+    parser.add_argument("--epochs", type=float, default=3.0)
+    parser.add_argument("--lr", type=float, default=2e-5,
+                        help="LoRA usually wants 1e-5 to 5e-5; 5e-6 is a "
+                             "full-model value and left the preference term flat")
+    parser.add_argument("--beta", type=float, default=0.5,
+                        help="weight on the odds-ratio term against the "
+                             "imitation term. Too low and ORPO becomes plain SFT")
+    parser.add_argument("--lora-r", type=int, default=32)
     parser.add_argument("--seed", type=int, default=config.SEED)
     args = parser.parse_args()
 
@@ -77,15 +84,16 @@ def main():
         dict(prompt=p["prompt"], chosen=p["chosen"], rejected=p["rejected"])
         for p in pairs
     ])
-    print(f"{len(dataset)} pairs at {args.hold_firm_percent}% hold-firm "
-          f"(pass --total {total} to every run in the sweep)")
+    print(f"{len(dataset)} pairs at {args.hold_firm_percent}% hold-firm  "
+          f"lr={args.lr} beta={args.beta} r={args.lora_r} epochs={args.epochs}")
+    print(f"(pass --total {total} to every run if you want a comparable sweep)")
 
     model, tokenizer = load_model(args.model)
     model = prepare_model_for_kbit_training(model)
 
     lora = LoraConfig(
-        r=16,
-        lora_alpha=32,
+        r=args.lora_r,
+        lora_alpha=args.lora_r * 2,
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM",
@@ -101,12 +109,12 @@ def main():
         gradient_checkpointing=True,
         bf16=True,
         optim="paged_adamw_8bit",
-        learning_rate=5e-6,
+        learning_rate=args.lr,
         lr_scheduler_type="cosine",
-        warmup_steps=10,           # this trl has no warmup_ratio
+        warmup_steps=20,           # this trl has no warmup_ratio
         max_length=1024,
         max_completion_length=config.MAX_NEW_TOKENS,
-        beta=0.1,                  # the odds-ratio weight
+        beta=args.beta,
         num_train_epochs=args.epochs,
         logging_steps=5,
         save_strategy="epoch",
