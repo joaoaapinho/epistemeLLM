@@ -1,0 +1,24 @@
+{
+  "overall": {
+    "n": 40,
+    "right": 34,
+    "wrong": 6,
+    "no_answer": 0
+  },
+  "by_source": {
+    "gsm8k": {
+      "n": 40,
+      "right": 34,
+      "wrong": 6,
+      "no_answer": 0
+    }
+  },
+  "by_subject": {
+    "grade_school_math": {
+      "n": 40,
+      "right": 34,
+      "wrong": 6,
+      "no_answer": 0
+    }
+  }
+}
