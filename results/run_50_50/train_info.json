@@ -1,0 +1,30 @@
+{
+  "name": "run_50_50",
+  "pairs_used": 704,
+  "hold_firm_percent": 50,
+  "learning_rate": 5e-06,
+  "beta": 0.1,
+  "epochs": 3.0,
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "max_length": 2048,
+  "warmup_steps": 10,
+  "per_device_train_batch_size": 1,
+  "gradient_accumulation_steps": 8,
+  "optim": "paged_adamw_8bit",
+  "lr_scheduler_type": "cosine",
+  "seed": 42,
+  "steps": 264,
+  "train_runtime_s": 1476,
+  "final_train_loss": 0.7883,
+  "lora_dropout": 0.05,
+  "target_modules": [
+    "down_proj",
+    "gate_proj",
+    "k_proj",
+    "o_proj",
+    "q_proj",
+    "up_proj",
+    "v_proj"
+  ]
+}

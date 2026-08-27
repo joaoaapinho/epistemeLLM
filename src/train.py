@@ -112,8 +112,8 @@ def main():
         optim="paged_adamw_8bit",
         learning_rate=args.lr,
         lr_scheduler_type="cosine",
-        warmup_steps=20,           # this trl has no warmup_ratio
-        max_length=1024,
+        warmup_steps=10,           # this trl has no warmup_ratio
+        max_length=2048,
         max_completion_length=config.MAX_NEW_TOKENS,
         beta=args.beta,
         num_train_epochs=args.epochs,
@@ -141,9 +141,12 @@ def main():
         hold_firm_percent=args.hold_firm_percent,
         learning_rate=args.lr, beta=args.beta, epochs=args.epochs,
         lora_r=args.lora_r, lora_alpha=args.lora_r * 2,
-        max_length=2048, per_device_train_batch_size=1,
-        gradient_accumulation_steps=8, warmup_steps=20,
-        optim="paged_adamw_8bit", lr_scheduler_type="cosine",
+        max_length=settings.max_length,
+        per_device_train_batch_size=settings.per_device_train_batch_size,
+        gradient_accumulation_steps=settings.gradient_accumulation_steps,
+        warmup_steps=settings.warmup_steps,
+        optim=settings.optim.value,
+        lr_scheduler_type=settings.lr_scheduler_type.value,
         final_log=trainer.state.log_history[-1] if trainer.state.log_history else None,
     ), indent=2))
     print(f"\nadapter saved to {output_dir}")
