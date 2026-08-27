@@ -6,6 +6,7 @@ model to compare against, which makes this fit in 8GB.
 """
 
 import argparse
+import json
 import random
 
 from datasets import Dataset
@@ -131,6 +132,20 @@ def main():
     )
     trainer.train()
     trainer.save_model(str(output_dir))
+
+    # a plain record of what produced this adapter, so a results folder can be
+    # traced back to its settings without unpickling training_args.bin
+    (output_dir / "train_info.json").write_text(json.dumps(dict(
+        name=args.name, model=args.model, seed=args.seed,
+        pairs_used=len(dataset), total=total,
+        hold_firm_percent=args.hold_firm_percent,
+        learning_rate=args.lr, beta=args.beta, epochs=args.epochs,
+        lora_r=args.lora_r, lora_alpha=args.lora_r * 2,
+        max_length=2048, per_device_train_batch_size=1,
+        gradient_accumulation_steps=8, warmup_steps=20,
+        optim="paged_adamw_8bit", lr_scheduler_type="cosine",
+        final_log=trainer.state.log_history[-1] if trainer.state.log_history else None,
+    ), indent=2))
     print(f"\nadapter saved to {output_dir}")
 
 
