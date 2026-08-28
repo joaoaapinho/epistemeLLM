@@ -1,0 +1,28 @@
+{
+  "name": "run_hf100_beta05",
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "seed": 42,
+  "pairs_used": 704,
+  "total": 704,
+  "hold_firm_percent": 100,
+  "learning_rate": 2e-05,
+  "beta": 0.5,
+  "epochs": 3.0,
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "max_length": 2048,
+  "per_device_train_batch_size": 1,
+  "gradient_accumulation_steps": 8,
+  "warmup_steps": 10,
+  "optim": "paged_adamw_8bit",
+  "lr_scheduler_type": "cosine",
+  "final_log": {
+    "train_runtime": 1384.8568,
+    "train_samples_per_second": 1.525,
+    "train_steps_per_second": 0.191,
+    "total_flos": 0.0,
+    "train_loss": 0.7181356928565286,
+    "epoch": 3.0,
+    "step": 264
+  }
+}

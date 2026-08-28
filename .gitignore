@@ -19,3 +19,4 @@ logs/*.log
 # Packaging / tooling
 episteme.egg-info/
 .pytest_cache/
+*.zip
