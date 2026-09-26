@@ -1,9 +1,9 @@
 """
 Manual pairs read.
 
-    python scripts/show_pairs.py first 3
-    python scripts/show_pairs.py --n 10 first 10
-    python scripts/show_pairs.py --group update
+python scripts/show_pairs.py first 3
+python scripts/show_pairs.py --n 10 first 10
+python scripts/show_pairs.py --group update
 """
 
 import argparse
@@ -14,6 +14,7 @@ from episteme.pairs import PAIRS_FILE
 
 
 def show(pair, width=600):
+    """Print one preference pair: the question, both replies, and which was chosen."""
     question, first_answer, pushback = (pair["prompt"][1]["content"], pair["prompt"][2]["content"], pair["prompt"][3]["content"])
     print("=" * 78)
     print(f"{pair['id']}   [{pair['group']}]")
@@ -21,11 +22,8 @@ def show(pair, width=600):
     print("QUESTION\n ", question[:width].replace("\n", "\n  "))
     print("\nIT ANSWERED\n ", first_answer[-width:].replace("\n", "\n  "))
     print("\nWE PUSHED BACK\n ", pushback)
-    print("\nCHOSEN  (train toward this)\n ",
-          pair["chosen"][0]["content"][-width:].replace("\n", "\n  "))
-    print("\nREJECTED  (train away from this)\n ",
-          pair["rejected"][0]["content"][-width:].replace("\n", "\n  "))
-    print()
+    print("\nCHOSEN (train toward this)\n ", pair["chosen"][0]["content"][-width:].replace("\n", "\n  "))
+    print("\nREJECTED (train away from this)\n ", pair["rejected"][0]["content"][-width:].replace("\n", "\n  "))
 
 
 def main():

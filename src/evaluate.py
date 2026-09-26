@@ -22,19 +22,17 @@ from episteme.extract import extract_answer, is_correct
 from episteme.generate import chat_prompt, generate
 from episteme.metrics import breakdown, bucket_summary, compute_metrics
 from episteme.model import load_model, set_seed
-from episteme.templates import (PRESSURE_LEVELS, answer_to_push,
-                                build_challenge, build_distractors)
+from episteme.templates import (PRESSURE_LEVELS, answer_to_push, build_challenge, build_distractors)
 
-# Turn 1 - Greedy for the model to give the same answer
+# Turn 1 - Greedy for the model to give the same answer.
 def ask(model, tokenizer, items, system_prompt, batch_size):
     prompts = [
         chat_prompt(tokenizer, [{"role": "system", "content": system_prompt},
                                 {"role": "user", "content": item["question"]}])
         for item in items
     ]
-    # confidence is captured here because it cannot be recovered afterwards
-    replies, confidence = generate(model, tokenizer, prompts, batch_size=batch_size,
-                                   logprobs=True, desc="turn 1")
+    # Confidence (logprobs) is captured.
+    replies, confidence = generate(model, tokenizer, prompts, batch_size=batch_size, logprobs=True, desc="turn 1")
 
     answers = []
     for item, reply, conf in zip(items, replies, confidence):
@@ -43,12 +41,11 @@ def ask(model, tokenizer, items, system_prompt, batch_size):
             reply=reply,
             confidence=conf,
             answer=answer,
-            correct=is_correct(answer, item["gold_answer"],
-                               item["answer_type"], item["choices"]),
+            correct=is_correct(answer, item["gold_answer"], item["answer_type"], item["choices"]),
         ))
     return answers
 
-# Turn 2 (1x per pressure level) - Replay model's words back to it
+# Turn 2 (1x per pressure level) - Replay model's words back to it.
 def push_back(model, tokenizer, items, first, distractors, system_prompt, batch_size):
     rows, prompts = [], []
 
@@ -66,7 +63,7 @@ def push_back(model, tokenizer, items, first, distractors, system_prompt, batch_
             rows.append(dict(
                 id=item["id"], source=item["source"], subject=item["subject"],
                 pressure_level=level,
-                # tell the truth only when it was wrong
+                # Tell the truth only when it was wrong.
                 pushed_truth=not answer["correct"],
                 pushed_answer=str(pushed),
                 gold_answer=item["gold_answer"],
@@ -86,11 +83,9 @@ def push_back(model, tokenizer, items, first, distractors, system_prompt, batch_
 
         row["turn2_answer"] = None if answer is None else str(answer)
         row["turn2_reply"] = reply
-        row["turn2_correct"] = is_correct(answer, item["gold_answer"],
-                                          item["answer_type"], item["choices"])
+        row["turn2_correct"] = is_correct(answer, item["gold_answer"], item["answer_type"], item["choices"])
         row["changed_mind"] = row["turn2_answer"] != row["turn1_answer"]
-        row["answered_both_turns"] = (row["turn1_answer"] is not None
-                                      and row["turn2_answer"] is not None)
+        row["answered_both_turns"] = (row["turn1_answer"] is not None and row["turn2_answer"] is not None)
     return rows
 
 
@@ -99,8 +94,7 @@ def main():
     parser.add_argument("--name", required=True, help="folder under results/")
     parser.add_argument("--model", default=config.MODEL)
     parser.add_argument("--adapter", default=None)
-    parser.add_argument("--prompt", default="base", choices=list(config.PROMPTS),
-                        help="which system prompt to test")
+    parser.add_argument("--prompt", default="base", choices=list(config.PROMPTS), help="which system prompt to test")
     parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
     parser.add_argument("--limit", type=int, default=None)
     args = parser.parse_args()
@@ -115,8 +109,7 @@ def main():
     started = time.perf_counter()
 
     first = ask(model, tokenizer, items, system_prompt, args.batch_size)
-    rows = push_back(model, tokenizer, items, first, distractors,
-                     system_prompt, args.batch_size)
+    rows = push_back(model, tokenizer, items, first, distractors, system_prompt, args.batch_size)
 
     minutes = (time.perf_counter() - started) / 60
     peak_gb = torch.cuda.max_memory_allocated() / 1e9
@@ -143,8 +136,8 @@ def main():
         value = "n/a" if m["value"] is None else f"{m['value']:.3f}"
         print(f"  {name:<16} {value}   ({m['k']}/{m['n']})")
     gap = results["pressure_gap"]
-    print(f"  flips when lied to  : {gap['flips_when_lied_to']}")
-    print(f"  flips when told true: {gap['flips_when_told_truth']}")
+    print(f" flips when lied to : {gap['flips_when_lied_to']}")
+    print(f" flips when told true: {gap['flips_when_told_truth']}")
     print(f"\n{minutes:.1f} min, peak {peak_gb:.2f} GB -> {outdir}")
 
 

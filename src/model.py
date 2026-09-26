@@ -62,11 +62,11 @@ def load_model(model_id, adapter_path=None, four_bit=True):
     model = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
 
     if adapter_path is not None:
-        # Lazy import so eval-only runs dont depend on peft
+        # Lazy import so eval-only runs dont depend on peft.
         from peft import PeftModel
 
         model = PeftModel.from_pretrained(model, adapter_path)
-        # Check adapter is attached
+        # Check adapter is attached.
         assert any("lora" in n.lower() for n, _ in model.named_parameters()), (f"No LoRA params found after loading {adapter_path}")
 
     # Gen config needs to be the same as the tokenizer, else wrong id is padded and extractor sees truncated text.

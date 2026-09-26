@@ -1,4 +1,6 @@
-"""Confidence intervals for the rates in metrics.py."""
+"""
+Confidence intervals for proportions.
+"""
 
 import numpy as np
 from scipy import stats

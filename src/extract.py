@@ -1,14 +1,15 @@
 """
 Pull final answer out model's reply.
 
-Model is told to finish with <answer>X</answer>. We take the last tag and
-clean up X. No tag = None.
+Model is told to finish with <answer>X</answer>. Take the last tag and clean up X. No tag = None.
 """
 
 import re
 
 from episteme import config
 
+
+# DOTALL so a reply with newlines inside the tag still matches.
 ANSWER_TAG = re.compile(r"<answer>(.*?)</answer>", re.DOTALL)
 
 
@@ -18,7 +19,7 @@ def last_boxed(text):
 
     Qwen falls back to its own \boxed{} habit when it re-derives an answer,
     especially in the second turn. This is still the model deliberately marking
-    its final answer, so we read it -- does not count like guessing.
+    its final answer, so we read it - does not count like guessing.
     """
     start = text.rfind(r"\boxed")
     if start == -1:
@@ -38,9 +39,11 @@ def last_boxed(text):
     return None
 
 
-# Number normalization
-# '1,234' -> 1234.0, '$5' -> 5.0, '3/4' -> 0.75, 'twelve' -> None.
 def clean_number(text):
+    """
+    Number normalization.
+    E.g., '1,234' to 1234.0, '$5' to 5.0, '3/4' to 0.75, 'twelve' to None.
+    """
     text = re.sub(r"\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}", r"\1/\2", text)
     for junk in (",", "$", "%", " ", "\\"):
         text = text.replace(junk, "")
@@ -57,16 +60,13 @@ def clean_number(text):
     return None
 
 
-# Text normalization for removing cosmetic differences 
-# "Murder", "3500 Hz", "\\frac{1}{3}" vs "murder.", "3,500 Hz", "1/3"
 def to_plain(text):
     """
-    Squash the cosmetic differences between how the model writes an answer and
-    how the dataset writes the option. The model says "Murder", "3500 Hz",
-    "\\frac{1}{3}", "\\text{B}"; the options say "murder.", "3,500 Hz", "1/3", "B".
+    Text normalization between how the model writes an answer and how the dataset writes the option. 
+    The model says "Murder", "3500 Hz", \\frac{1}{3}", "\\text{B}"; the options say "murder.", "3,500 Hz", "1/3", "B".
     """
     text = text.strip().lower()
-    text = re.sub(r"\\text\s*\{([^{}]*)\}", r"\1", text)      # \text{B} -> B
+    text = re.sub(r"\\text\s*\{([^{}]*)\}", r"\1", text)  # \text{B} -> B
     text = re.sub(r"\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}", r"\1/\2", text)
     text = text.replace(r"\pi", "π").replace(r"\times", "*").replace("×", "*")
     for junk in ("\\", "$", "(", ")", ",", " ", "{", "}"):
@@ -75,8 +75,9 @@ def to_plain(text):
 
 
 def clean_choice(text, choices=None):
+    """Choice normalization."""
     text = text.strip().strip("$").strip().rstrip(".").strip()
-    # the model often wraps a bare letter: \text{B}, \boxed{\text{B}}
+    # The model often wraps the letter: \text{B}, \boxed{\text{B}}
     text = re.sub(r"\\text\s*\{([^{}]*)\}", r"\1", text).strip()
 
     letter = re.match(r"^\(?([A-Da-d])\)?(?:[.):]\s|$)", text)
@@ -92,16 +93,15 @@ def clean_choice(text, choices=None):
         return config.LETTERS[options.index(wanted)]
 
     # The model often drops the unit: "39.5" for the option "39.5 eV". Accept
-    # that only when exactly one option starts that way, so it stays unambiguous.
-    starts = [i for i, option in enumerate(options)
-              if wanted and option.startswith(wanted)]
+    # that only when exactly one option starts that way (unambiguous).
+    starts = [i for i, option in enumerate(options) if wanted and option.startswith(wanted)]
     if len(starts) == 1:
         return config.LETTERS[starts[0]]
     return None
 
 
-# Extract clean answer or None
 def extract_answer(reply, answer_type, choices=None):
+    """Extract clean answer or None."""
     tags = ANSWER_TAG.findall(reply or "")
     answer = tags[-1].strip() if tags and tags[-1].strip() else None
     if answer is None:
@@ -116,8 +116,8 @@ def extract_answer(reply, answer_type, choices=None):
     raise ValueError(f"unknown answer_type: {answer_type}")
 
 
-# None is never correct
 def is_correct(answer, gold_answer, answer_type, choices=None):
+    """Compare an extracted answer to gold, within tolerance for numbers. None is never correct."""
     if answer is None:
         return False
 

@@ -22,11 +22,10 @@ from episteme.data import read_jsonl, write_jsonl
 from episteme.extract import extract_answer, is_correct
 from episteme.generate import chat_prompt, generate
 from episteme.model import load_model, set_seed
-from episteme.templates import (PRESSURE_LEVELS, answer_to_push,
-                                build_challenge, build_distractors)
+from episteme.templates import (PRESSURE_LEVELS, answer_to_push, build_challenge, build_distractors)
 
-PAIRS_FILE = config.DATA / "train" / "pairs.jsonl"
-SAMPLES_FILE = config.DATA / "train" / "samples.jsonl"
+PAIRS_FILE = config.DATA/"train"/"pairs.jsonl"
+SAMPLES_FILE = config.DATA/"train"/"samples.jsonl"
 
 
 def ask_once(model, tokenizer, items, batch_size):
@@ -36,28 +35,29 @@ def ask_once(model, tokenizer, items, batch_size):
                                 {"role": "user", "content": item["question"]}])
         for item in items
     ]
-    replies = generate(model, tokenizer, prompts, batch_size=batch_size,
-                       desc="first answers")
+
+    replies = generate(model, tokenizer, prompts, batch_size=batch_size, desc="first answers")
 
     results = []
     for item, reply in zip(items, replies):
         answer = extract_answer(reply, item["answer_type"], item["choices"])
-        results.append((reply, is_correct(answer, item["gold_answer"],
-                                          item["answer_type"], item["choices"])))
+        results.append((reply, is_correct(answer, item["gold_answer"], item["answer_type"], item["choices"])))
+
     return results
 
 
 def sample_replies(model, tokenizer, prompts, n_samples, batch_size):
     """Several replies per prompt, so the samples can disagree with each other."""
     repeated = [prompt for prompt in prompts for _ in range(n_samples)]
-    replies = generate(model, tokenizer, repeated, batch_size=batch_size,
-                       sample=True, desc="sampling replies")
+    replies = generate(model, tokenizer, repeated, batch_size=batch_size, sample=True, desc="sampling replies")
+
     return [replies[i * n_samples:(i + 1) * n_samples] for i in range(len(prompts))]
 
 
 def split_by_outcome(item, replies):
     """Sort replies into those ending on the right answer and those that don't."""
     good, bad = [], []
+
     for reply in replies:
         answer = extract_answer(reply, item["answer_type"], item["choices"])
         if answer is None:
@@ -66,6 +66,7 @@ def split_by_outcome(item, replies):
             good.append(reply)
         else:
             bad.append(reply)
+
     return good, bad
 
 
@@ -106,12 +107,13 @@ def build_pairs(samples, items_by_id, per_item=2):
 
 
 def report(pairs, dropped, n_items):
+    """Print how many pairs were built, by group, and dropped reason."""
     counts = {}
     for pair in pairs:
         counts[pair["group"]] = counts.get(pair["group"], 0) + 1
-    print(f"\n{len(pairs)} pairs from {n_items} items  {counts}")
+    print(f"\n{len(pairs)} pairs from {n_items} items {counts}")
     for reason, n in dropped.items():
-        print(f"  dropped, {reason}: {n}")
+        print(f" dropped, {reason}: {n}")
 
 
 def rebuild(per_item):
@@ -130,15 +132,9 @@ def main():
     parser.add_argument("--samples", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--pairs-per-item", type=int, default=2,
-                        help="an item with several good and bad replies can "
-                             "supply more than one pair")
-    parser.add_argument("--rebuild", action="store_true",
-                        help="redo the pairing from data/train/samples.jsonl, "
-                             "no model needed")
-    parser.add_argument("--shuffle", action="store_true",
-                        help="mix the sources before --limit; the file is "
-                             "ordered gsm8k first, so a small limit is all gsm8k")
+    parser.add_argument("--pairs-per-item", type=int, default=2, help="an item with several good and bad replies can supply more than one pair")
+    parser.add_argument("--rebuild", action="store_true", help="redo the pairing from data/train/samples.jsonl, no model needed")
+    parser.add_argument("--shuffle", action="store_true", help="mix the sources before --limit; the file is ordered gsm8k first, so a small limit is all gsm8k")
     args = parser.parse_args()
 
     if args.rebuild:
@@ -155,8 +151,7 @@ def main():
 
     first_answers = ask_once(model, tokenizer, items, args.batch_size)
 
-    # Pick a pressure level per item at random, so the training data is not all
-    # phrased the same way.
+    # Pick a pressure level per item at random, so the training data is not all phrased the same way.
     rng = random.Random(config.SEED)
     conversations = []
     for item, (reply, was_correct) in zip(items, first_answers):
@@ -174,8 +169,7 @@ def main():
 
     pairs, samples = [], []
     dropped = {"no answer tag": 0, "every sample agreed": 0}
-    for item, (_, was_correct), conversation, replies in zip(
-            items, first_answers, conversations, sampled):
+    for item, (_, was_correct), conversation, replies in zip(items, first_answers, conversations, sampled):
         good, bad = split_by_outcome(item, replies)
         samples.append(dict(
             id=item["id"], group="hold_firm" if was_correct else "update",
@@ -191,12 +185,12 @@ def main():
             dropped["no answer tag"] += 1
             continue
         if not good or not bad:
-            # all the samples went the same way, so there is nothing to contrast
+            # All the samples went the same way, so there is nothing to contrast.
             dropped["every sample agreed"] += 1
             continue
         pairs.append(dict(
             id=item["id"],
-            # what the model needed to do here, so we can vary the mix later
+            # What the model needed to do here, so we can vary the mix later.
             group="hold_firm" if was_correct else "update",
             prompt=conversation,
             chosen=[{"role": "assistant", "content": good[0]}],

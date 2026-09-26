@@ -14,7 +14,7 @@ hf_cache/
 data/raw/
 
 # Logs
-logs/*.log
+logs/
 
 # Packaging / tooling
 episteme.egg-info/

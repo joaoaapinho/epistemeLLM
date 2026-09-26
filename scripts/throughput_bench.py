@@ -3,8 +3,6 @@ Script to measure 4-bit generation speed. Find the largest batch size
 that fits in VRAM and estimate how long a full eval will take.
 """
 
-# Imports
-
 import argparse
 import gc
 import json
@@ -22,13 +20,14 @@ PROMPT_TOKENS_APPROX = 250
 
 # Filler prompt
 def build_prompts(tokenizer, batch_size, prompt_tokens):
+    """Build a batch of identical dummy prompts padded to ~ prompt_tokens."""
     filler = "Solve this step by step. " * (prompt_tokens // 6)
     msgs = [{"role": "user", "content": filler}]
     text = tokenizer.apply_chat_template(msgs, tokenize = False, add_generation_prompt = True)
     return [text] * batch_size
 
-# Gen call - return seconds and gen tokens
 def run_once(model, tokenizer, batch_size, max_new_tokens, prompt_tokens):
+    """Run one generation call and return the elapsed seconds and tokens generated."""
     prompts = build_prompts(tokenizer, batch_size, prompt_tokens)
     enc = tokenizer(prompts, return_tensors="pt", padding=True).to(model.device)
 
@@ -92,7 +91,7 @@ def main():
     for bs in args.batch_sizes:
         try:
             torch.cuda.reset_peak_memory_stats()
-            # Warmup (not timed) - first call includes CUDA kernel compilation.
+            # Warmup - first call includes CUDA kernel compilation.
             run_once(model, tokenizer, bs, 32, args.prompt_tokens)
  
             times, toks = [], []

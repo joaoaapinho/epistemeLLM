@@ -16,7 +16,7 @@ train:
 	python -m episteme.train --name run_50_50 --hold-firm-percent 50
 
 smoke:
-	python scripts/01_smoke_test.py
+	python scripts/smoke_test.py
 
 # before report
 eval-base:

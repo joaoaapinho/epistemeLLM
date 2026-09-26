@@ -1,8 +1,5 @@
 """
 ORPO on top of the 4-bit model.
-
-ORPO is reference-free: unlike DPO it does not keep a second frozen copy of the
-model to compare against, which makes this fit in 8GB.
 """
 
 import argparse
@@ -46,9 +43,7 @@ def pick_by_ratio(pairs, hold_firm_percent, total, seed=config.SEED):
 
     n_hold = round(total * hold_firm_percent / 100)
     n_update = total - n_hold
-    assert n_hold <= len(hold) and n_update <= len(update), (
-        f"need {n_hold} hold-firm and {n_update} update pairs, "
-        f"but only have {len(hold)} and {len(update)}")
+    assert n_hold <= len(hold) and n_update <= len(update), (f"need {n_hold} hold-firm and {n_update} update pairs, but only have {len(hold)} and {len(update)}")
 
     rng = random.Random(seed)
     rng.shuffle(hold)
@@ -63,28 +58,21 @@ def main():
     parser.add_argument("--name", required=True, help="folder under checkpoints/")
     parser.add_argument("--model", default=config.MODEL)
     parser.add_argument("--hold-firm-percent", type=int, default=50)
-    parser.add_argument("--total", type=int, default=None,
-                        help="pairs to train on; keep this the same across runs")
+    parser.add_argument("--total", type=int, default=None, help="pairs to train on; keep this the same across runs")
+    parser.add_argument("--pairs", default=PAIRS_FILE, help="pair file; scripts/filter_pairs.py writes a filtered one next to the default")
     parser.add_argument("--epochs", type=float, default=3.0)
-    parser.add_argument("--lr", type=float, default=2e-5,
-                        help="LoRA usually wants 1e-5 to 5e-5; 5e-6 is a "
-                             "full-model value and left the preference term flat")
-    parser.add_argument("--beta", type=float, default=0.5,
-                        help="weight on the odds-ratio term against the "
-                             "imitation term. Too low and ORPO becomes plain SFT")
+    parser.add_argument("--lr", type=float, default=2e-5, help="LoRA usually wants 1e-5 to 5e-5; 5e-6 is a full-model value and left the preference term flat")
+    parser.add_argument("--beta", type=float, default=0.5, help="weight on the odds-ratio term against the imitation term. Too low and ORPO becomes plain SFT")
     parser.add_argument("--lora-r", type=int, default=32)
     parser.add_argument("--seed", type=int, default=config.SEED)
     args = parser.parse_args()
 
     set_seed(args.seed)
 
-    all_pairs = read_jsonl(PAIRS_FILE)
+    all_pairs = read_jsonl(args.pairs)
     total = args.total or largest_common_total(all_pairs)
     pairs = pick_by_ratio(all_pairs, args.hold_firm_percent, total, args.seed)
-    dataset = Dataset.from_list([
-        dict(prompt=p["prompt"], chosen=p["chosen"], rejected=p["rejected"])
-        for p in pairs
-    ])
+    dataset = Dataset.from_list([dict(prompt=p["prompt"], chosen=p["chosen"], rejected=p["rejected"]) for p in pairs])
     print(f"{len(dataset)} pairs at {args.hold_firm_percent}% hold-firm  "
           f"lr={args.lr} beta={args.beta} r={args.lora_r} epochs={args.epochs}")
     print(f"(pass --total {total} to every run if you want a comparable sweep)")
@@ -98,9 +86,8 @@ def main():
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM",
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                        "gate_proj", "up_proj", "down_proj"],
-    )
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj","gate_proj", "up_proj", "down_proj"]
+        )
 
     output_dir = config.ROOT / "checkpoints" / args.name
     settings = ORPOConfig(
@@ -112,7 +99,7 @@ def main():
         optim="paged_adamw_8bit",
         learning_rate=args.lr,
         lr_scheduler_type="cosine",
-        warmup_steps=10,           # this trl has no warmup_ratio
+        warmup_steps=10,
         max_length=2048,
         max_completion_length=config.MAX_NEW_TOKENS,
         beta=args.beta,
@@ -133,11 +120,11 @@ def main():
     trainer.train()
     trainer.save_model(str(output_dir))
 
-    # a plain record of what produced this adapter, so a results folder can be
-    # traced back to its settings without unpickling training_args.bin
+    # Plain record of what produced this adapter, so a results folder can be
+    # traced back to its settings without training_args.bin.
     (output_dir / "train_info.json").write_text(json.dumps(dict(
         name=args.name, model=args.model, seed=args.seed,
-        pairs_used=len(dataset), total=total,
+        pairs_file=str(args.pairs), pairs_used=len(dataset), total=total,
         hold_firm_percent=args.hold_firm_percent,
         learning_rate=args.lr, beta=args.beta, epochs=args.epochs,
         lora_r=args.lora_r, lora_alpha=args.lora_r * 2,
@@ -149,6 +136,16 @@ def main():
         lr_scheduler_type=settings.lr_scheduler_type.value,
         final_log=trainer.state.log_history[-1] if trainer.state.log_history else None,
     ), indent=2))
+
+    # Every logged step, so the curve can be replotted without the console.
+    logged = [entry for entry in trainer.state.log_history if "loss" in entry]
+    columns = ["epoch", "log_odds_ratio", "rewards/accuracies", "log_odds_chosen", "nll_loss"]
+    (output_dir / "train_log.json").write_text(json.dumps(dict(
+        run=args.name,
+        columns=[c.replace("/", "_") for c in columns],
+        log=[[entry.get(c) for c in columns] for entry in logged],
+    ), indent=1))
+
     print(f"\nadapter saved to {output_dir}")
 
 

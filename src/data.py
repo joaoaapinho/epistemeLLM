@@ -18,8 +18,8 @@ def load_gsm8k():
     answer: "Janet sells 16 - 3 - 4 = 9 eggs...\n#### 18"
 
     Two things need adapting:
-        - gold answer is only what follows '####'
-        - numbers carry thousands separators "1,300", so commas get stripped
+      - gold answer is only what follows '####'
+      - numbers carry thousands separators "1,300", so commas get stripped
     """
     rows = load_dataset(config.GSM8K_ID, "main", split="test")
 
@@ -59,8 +59,7 @@ def load_mmlu():
 
     by_subject = {subject: [] for subject in config.MMLU_SUBJECTS}
     for i, row in enumerate(rows):
-        options = "\n".join(f"{letter}. {choice}"
-                            for letter, choice in zip(config.LETTERS, row["choices"]))
+        options = "\n".join(f"{letter}. {choice}" for letter, choice in zip(config.LETTERS, row["choices"]))
         by_subject[row["subject"]].append(dict(
             id=f"mmlu-{row['subject']}-{i:05d}",
             source="mmlu",
@@ -72,8 +71,9 @@ def load_mmlu():
         ))
     return by_subject
 
-# Shuffle and slicing while avoiding overlap
+
 def split(pool, n_eval, n_train, rng):
+    """Shuffle and slice while avoiding overlap."""
     assert len(pool) >= n_eval + n_train, \
         f"need {n_eval + n_train} items, pool only has {len(pool)}"
 
@@ -81,7 +81,7 @@ def split(pool, n_eval, n_train, rng):
     rng.shuffle(shuffled)
     return shuffled[:n_eval], shuffled[n_eval:n_eval + n_train]
 
-# Return (eval_items, train_items) - same seed and split
+
 def build_splits(seed=config.SEED):
     """Return (eval_items, train_items). Same seed, same split, every time."""
     rng = random.Random(seed)
@@ -91,8 +91,7 @@ def build_splits(seed=config.SEED):
 
     # MMLU: an even slice per subject for eval, so every subject is represented
     # in the test set the same way. Training takes an even slice too, then tops
-    # up from whichever subjects have items to spare -- the small subjects run
-    # out long before the big ones, and the eval slice must not move.
+    # up from whichever subjects have items to spare.
     by_subject = load_mmlu()
     per_eval = config.N_EVAL["mmlu"] // len(config.MMLU_SUBJECTS)
     per_train = config.N_TRAIN["mmlu"] // len(config.MMLU_SUBJECTS)
@@ -104,8 +103,7 @@ def build_splits(seed=config.SEED):
         subject_eval, subject_train = split(pool, per_eval, take_train, rng)
         eval_items += subject_eval
         train_items += subject_train
-        leftovers += [i for i in pool
-                      if i["id"] not in {x["id"] for x in subject_eval + subject_train}]
+        leftovers += [i for i in pool if i["id"] not in {x["id"] for x in subject_eval + subject_train}]
 
     short_by = config.N_TRAIN["mmlu"] - sum(1 for i in train_items if i["source"] == "mmlu")
     if short_by > 0:
@@ -120,6 +118,7 @@ def build_splits(seed=config.SEED):
 
 
 def count_by(items, field):
+    """Count how many items share each value of a field."""
     counts = {}
     for item in items:
         counts[item[field]] = counts.get(item[field], 0) + 1
@@ -127,11 +126,13 @@ def count_by(items, field):
 
 
 def read_jsonl(path):
+    """Load a JSONL file into a list of dicts, skipping blanks."""
     with open(path) as f:
         return [json.loads(line) for line in f if line.strip()]
 
 
 def write_jsonl(path, rows):
+    """Write a list of dicts to a JSONL file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         for row in rows:
@@ -139,6 +140,7 @@ def write_jsonl(path, rows):
 
 
 def save_splits(eval_items, train_items, seed=config.SEED):
+    """Write the eval/train splits to disk plus a manifest describing them."""
     write_jsonl(config.EVAL_ITEMS, eval_items)
     write_jsonl(config.TRAIN_ITEMS, train_items)
 
@@ -154,7 +156,7 @@ def save_splits(eval_items, train_items, seed=config.SEED):
     ), indent=2))
 
 
-# Download, split and save: python -m episteme.data
+# Download, split and save: python -m episteme.data.
 def main():
     eval_items, train_items = build_splits()
     save_splits(eval_items, train_items)

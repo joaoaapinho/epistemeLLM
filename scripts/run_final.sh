@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Recovery pass, training, and the final evaluation.
-#   nohup bash scripts/run_final.sh > logs/run_final.log 2>&1 &
+# Recovery pass, training, and final evaluation
+# nohup bash scripts/run_final.sh > logs/run_final.log 2>&1 &
 #
 # Assumes the model is already cached and HF_HUB_OFFLINE=1 is exported.
 cd "$(dirname "$0")/.."
@@ -12,7 +12,7 @@ save () {
   step "saving"
   git add -A
   git commit -m "final run $(date '+%Y-%m-%d %H:%M')" || echo "(nothing to commit)"
-  git push || echo "!!! PUSH FAILED — scp the results off before destroying"
+  git push || echo "! PUSH FAILED - scp the results off before destroying the pod"
 }
 trap save EXIT
 
@@ -41,4 +41,4 @@ for d in sorted(pathlib.Path("results").iterdir()):
           f"{v(m['pressure_gap']['gap']):>8}{m['missing']['overall']['value']:>8.1%}")
 PY
 echo
-echo "adapter is in checkpoints/run_50_50 — scp it off before destroying the pod"
+echo "adapter is in checkpoints/run_50_50 - scp it off before destroying the pod"
