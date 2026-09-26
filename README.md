@@ -105,7 +105,7 @@ Only `reasoned` gives the model something it can verify. A model that reasons sh
 
 The base model is frozen in **4-bit NF4** with double quantisation and bf16 compute; only low-rank adapters train. For a frozen weight $W_0 \in \mathbb{R}^{d \times k}$:
 
-$$W = W_0 + \frac{\alpha}{r} BA, \qquad B \in \mathbb{R}^{d \times r},\; A \in \mathbb{R}^{r \times k},\; r \ll \min(d,k)$$
+$$W = W_0 + \frac{\alpha}{r} BA, \qquad B \in \mathbb{R}^{d \times r}, \quad A \in \mathbb{R}^{r \times k}, \quad r \ll \min(d,k)$$
 
 With $r = 16$, $\alpha = 32$ on all seven projections (`q,k,v,o,gate,up,down`) across 36 layers: **29.9M trainable parameters**, ~1% of the 3.09B base.
 
@@ -115,15 +115,15 @@ With $r = 16$, $\alpha = 32$ on all seven projections (`q,k,v,o,gate,up,down`) a
 
 ORPO is reference-free - unlike DPO it keeps no frozen copy of the policy, which is what makes this fit on one consumer GPU. Its loss combines supervised imitation of the preferred response with an odds-ratio preference term:
 
-$$\mathcal{L}_{\text{ORPO}} = \mathcal{L}_{\text{SFT}}(y_w) \;-\; \beta \cdot \log \sigma\!\left( \log \frac{\text{odds}_\theta(y_w \mid x)}{\text{odds}_\theta(y_l \mid x)} \right)$$
+$$\mathcal{L}_{\text{ORPO}} = \mathcal{L}_{\text{SFT}}(y_w) - \beta \cdot \log \sigma\!\left( \log \frac{\text{odds}_\theta(y_w \mid x)}{\text{odds}_\theta(y_l \mid x)} \right)$$
 
 where the sequence probability is **length-normalised**,
 
-$$p_\theta(y \mid x) = \exp\!\left( \frac{1}{|y|} \sum_{t=1}^{|y|} \log p_\theta(y_t \mid x, y_{<t}) \right), \qquad \text{odds}_\theta(y \mid x) = \frac{p_\theta(y \mid x)}{1 - p_\theta(y \mid x)}$$
+$$p_\theta(y \mid x) = \exp\!\left( \frac{1}{|y|} \sum_{t=1}^{|y|} \log p_\theta(y_t \mid x, y_{\lt t}) \right), \qquad \text{odds}_\theta(y \mid x) = \frac{p_\theta(y \mid x)}{1 - p_\theta(y \mid x)}$$
 
 The second term is logged by TRL as `log_odds_ratio`. Note its fixed point:
 
-$$\text{odds}(y_w) = \text{odds}(y_l) \;\Longrightarrow\; \log\sigma(0) = \log \tfrac{1}{2} = -0.693$$
+$$\text{odds}(y_w) = \text{odds}(y_l)  \Longrightarrow  \log\sigma(0) = \log \tfrac{1}{2} = -0.693$$
 
 **That constant is the diagnostic.** A run whose `log_odds_ratio` sits at $-0.693$ has learned no preference at all, regardless of how healthy the total loss looks.
 
@@ -139,17 +139,17 @@ A perfectly evidence-sensitive model has a gap of $-1$; a model that ignores evi
 
 Each reply also carries the model's own **confidence**, the mean token log-probability of its first answer, recovered in a second forward pass since keeping `output_scores` during generation does not fit in memory:
 
-$$c(y) = \frac{1}{|y|} \sum_{t=1}^{|y|} \log p_\theta(y_t \mid x, y_{<t})$$
+$$c(y) = \frac{1}{|y|} \sum_{t=1}^{|y|} \log p_\theta(y_t \mid x, y_{\lt t})$$
 
 ### 4. Statistics
 
 Every rate carries a **Wilson score interval** - how much it would wobble on a different sample of questions. Unlike the textbook formula it never returns impossible ranges like "-2% to 4%", which matters when rates sit near 0% or 100%:
 
-$$\text{CI} = \frac{1}{1 + \frac{z^2}{n}} \left( \hat{p} + \frac{z^2}{2n} \;\pm\; z\sqrt{\frac{\hat{p}(1-\hat{p})}{n} + \frac{z^2}{4n^2}} \right)$$
+$$\text{CI} = \frac{1}{1 + \frac{z^2}{n}} \left( \hat{p} + \frac{z^2}{2n}  \pm  z\sqrt{\frac{\hat{p}(1-\hat{p})}{n} + \frac{z^2}{4n^2}} \right)$$
 
 Which questions become lie-trials depends on which ones that model got right, so comparing overall percentages mixes up how the model behaves with *which questions it got right*. The headline result is therefore **paired**: keep only questions where both arms faced the same situation, then count the disagreements - $b$ where only base caved, $c$ where only the tuned model did. The null hypothesis is that fine-tuning changed nothing, so each disagreement is a coin flip:
 
-$$H_0: \quad b \sim \text{Binomial}(b + c,\; \tfrac{1}{2})$$
+$$H_0: \quad b \sim \text{Binomial}(b + c, \tfrac{1}{2})$$
 
 An exact **McNemar** test rejects it: 413 against 57 is not a coin flip.
 
