@@ -145,7 +145,7 @@ $$c(y) = \frac{1}{|y|} \sum_{t=1}^{|y|} \log p_\theta(y_t \mid x, y_{\lt t})$$
 
 Every rate carries a **Wilson score interval** - how much it would wobble on a different sample of questions. Unlike the textbook formula it never returns impossible ranges like "-2% to 4%", which matters when rates sit near 0% or 100%:
 
-$$\text{CI} = \frac{1}{1 + \frac{z^2}{n}} \left( \hat{p} + \frac{z^2}{2n}  \pm  z\sqrt{\frac{\hat{p}(1-\hat{p})}{n} + \frac{z^2}{4n^2}} \right)$$
+$$\text{CI} = \frac{\hat{p} + \dfrac{z^2}{2n} \pm z\sqrt{\dfrac{\hat{p}(1-\hat{p})}{n} + \dfrac{z^2}{4n^2}}}{1 + \dfrac{z^2}{n}}$$
 
 Which questions become lie-trials depends on which ones that model got right, so comparing overall percentages mixes up how the model behaves with *which questions it got right*. The headline result is therefore **paired**: keep only questions where both arms faced the same situation, then count the disagreements - $b$ where only base caved, $c$ where only the tuned model did. The null hypothesis is that fine-tuning changed nothing, so each disagreement is a coin flip:
 
