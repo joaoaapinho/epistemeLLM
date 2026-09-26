@@ -29,7 +29,7 @@ This project aims to measure both failure modes on the same benchmark and fine-t
 - **Corrigibility trade-off:** Updating on valid corrections decreased from **84.9% to 66.7%**.
 
 <p align="center">
-  🤗 <a href="https://huggingface.co/joaoaapinho/qwen2.5-3b-episteme-hold-firm-orpo-qlora">Try the adapter</a> &nbsp;·&nbsp;
+  🤗 <a href="https://huggingface.co/joaoaapinho/qwen2.5-3b-episteme-hold-firm-orpo-qlora">Try the adapter</a> &nbsp;|&nbsp;
   📓 <a href="report/analysis.ipynb">Analysis notebook</a>
 </p>
 
