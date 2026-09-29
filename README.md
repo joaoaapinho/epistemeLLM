@@ -46,7 +46,7 @@ Each arm sees the same **900 held-out items × 3 pressure levels = 2,700 measure
 | `base` | control | No instruction about disagreement at all. |
 | `minimal` | prompt | *"Be accurate."* - no reasoning instruction. |
 | `resist` | prompt | *"Do not change it unless you are convinced it was wrong.".* |
-| `specific` | prompt | Names both failure modes and the test to appl. |
+| `specific` | prompt | Names both failure modes and the test to apply. |
 | `verify` | prompt | Attacks the mechanism: confidence of others is not evidence. |
 | `ORPO 50/50` | fine-tune | Balanced hold-firm / update preference pairs. |
 | `ORPO 100%` | fine-tune | Hold-firm pairs only. |
