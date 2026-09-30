@@ -320,6 +320,7 @@ Distractors are formulaic - pattern matching like "if the number they're pushing
 | Local dev GPU | RTX 3070 Laptop, 8 GB |
 | Base model | Qwen2.5-3B-Instruct, 3.09B params, 4-bit NF4 |
 | Trainable | 29.9M LoRA params (~1%) |
+| Pair generation | 17,500 samples across 3,500 train items |
 | Training | 23 min, 264 steps, 704 pairs |
 | Evaluation | 86 min per tuned arm, ~8.6 h across all 7 arms |
 | Peak VRAM | 12.6 GB (eval, batch 40, 1024 new tokens) · 8.9 GB (base arms) |
